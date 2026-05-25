@@ -1,0 +1,371 @@
+{
+  "name": "AI-Email-Customer-Support",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        752,
+        288
+      ],
+      "id": "0fd925df-f1cd-47df-9c31-9c10dfe9079e",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "rQETnxMi8GcIHv7F",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        528,
+        128
+      ],
+      "id": "8b51e80a-2b32-4eea-aab0-c6d76ac21c4c",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IAKJacTCbqN29wo3",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To_Email', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        128
+      ],
+      "id": "15af71e7-f185-4866-a98b-9fd364a26cb7",
+      "name": "Create a draft in Gmail",
+      "webhookId": "e8b826fd-6e19-41ac-93b9-eb8425d9aa31",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pI7MJ5ANAQp6IjbU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        112,
+        96
+      ],
+      "id": "6d9b9ef4-68f8-4f4a-b4bb-88779acef790",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "IAKJacTCbqN29wo3",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 📥 Incoming Emails\nThis will trigger on any new incoming mails",
+        "height": 384,
+        "width": 416,
+        "color": "#641616"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -160
+      ],
+      "id": "2870b810-e902-44b8-a18f-7d830515bfa1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 🧠 Classify Email\nWe will classify the email received based on promotional or customer support",
+        "height": 384,
+        "width": 400,
+        "color": "#2B154C"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        -160
+      ],
+      "id": "37b79f4a-e40d-4339-a591-51efe1d8cddf",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 5,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -336,
+        -64
+      ],
+      "id": "86f625cc-cf8c-4d5c-b5d2-e691d0236a83",
+      "name": "Incoming_Email_Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pI7MJ5ANAQp6IjbU",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "46c34b1a-1a36-4976-83d6-59bf35402b24",
+              "name": "EmaiBody",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        -64
+      ],
+      "id": "a7314792-b522-4517-9f8d-b2b4a5cdff96",
+      "name": "Extract_Email_Content"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.EmaiBody }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Promotional",
+              "description": "Marketing, offers, discounts, newsletters, sales pitches."
+            },
+            {
+              "category": "Support_Service",
+              "description": "Customer inquiries, troubleshooting, complaints or help requests"
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "Please classify the text provided by the user into one of the following categories: {categories}, and use the provided formatting instructions below. Don't explain, and only output the json."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        -64
+      ],
+      "id": "ea793025-9232-4c8c-a0d6-708aaf3ecf77",
+      "name": "Classify_Email_Type"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email received:  {{ $json.EmaiBody }}\n\nFrom: {{ $('Incoming_Email_Trigger').item.json.From }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a helpful assistant that answers any inquiries for APPRECIATE GREAT EMPLOYEE \nENGAGEMENT PROGRAM.You will be drafting email replies for the incoming queries that come through.\n\n##Tools\nVector_store - This tool will be used to help us answer any incoming queries from users\nemail_draft - This tool will be used to draft any emails back to the user. Make sure to\nuse the Vector_store before using this tool\n\n##Rules\n- ALWAYS use Vector_store before answering and drafting any emails\n- ALWAYS draft an email with an answer\n\n##Extra information\nMy name is n8n\n- Make sure to include that when drafting the email"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        576,
+        -64
+      ],
+      "id": "e70c8b01-7c15-4b9d-bf57-f24149f0ac82",
+      "name": "Customer_Support_Agent"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Work with the data inside the vector database to answer any questions",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        128
+      ],
+      "id": "4559bea4-f899-48b4-b4cb-8c2ffb001f3f",
+      "name": "Support_Knowledge_Base",
+      "credentials": {
+        "supabaseApi": {
+          "id": "7kws4MwK0KOuB6SH",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Retrieval and Email draft\nWe will pull the required information from the Vector DB and draft an email with an response to the user ",
+        "height": 576,
+        "width": 592,
+        "color": "#1F3320"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        496,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "c023a05c-1d86-40f8-b44b-9d73c3158b29",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Support_Knowledge_Base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer_Support_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer_Support_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify_Email_Type",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incoming_Email_Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract_Email_Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract_Email_Content": {
+      "main": [
+        [
+          {
+            "node": "Classify_Email_Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify_Email_Type": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Customer_Support_Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer_Support_Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Support_Knowledge_Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer_Support_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "npxaNKDshE8pftIA",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "fa2d39b9-a7e9-4014-8fed-1baaa04dc950",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "682d0d64164daed5d4e00ef78fa2276677b1029bb0ef930add379222d26275fb"
+  },
+  "id": "BjP4E4vtSF4MoA0t",
+  "tags": []
+}

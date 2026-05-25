@@ -1,0 +1,19 @@
+services:
+  n8n:
+    container_name: n8n_test
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5678:5678"          # use a different host port (so it doesn't clash with your existing n8n)
+    environment:
+      - TZ=Asia/Kolkata
+      - GENERIC_TIMEZONE=Asia/Kolkata
+    volumes:
+      - n8n-ffmpeg-data:/home/node/.n8n
+      - ./shared:/data
+    restart: unless-stopped
+
+volumes:
+  n8n-ffmpeg-data:
+    name: n8n-ffmpeg-data
